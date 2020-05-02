@@ -2,14 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
-	"fmt"
+	"github.com/gorilla/mux"
 )
 
 // spaHandler implements the http.Handler interface, so we can use it
@@ -19,6 +19,11 @@ import (
 type spaHandler struct {
 	staticPath string
 	indexPath  string
+}
+
+type message struct {
+	Message string
+	Type    string
 }
 
 // ServeHTTP inspects the URL path to locate a file within the static dir
@@ -59,6 +64,21 @@ func main() {
 	log.Println("Server on")
 	router := mux.NewRouter()
 
+	log.Println("Register routes")
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// an example API handler
+
+		object := message{
+			Message: "Hello World",
+			Type:    "Example",
+		}
+
+		content, err := json.Marshal(object)
+		if err != nil {
+			log.Println(err)
+		}
+		w.Write([]byte(content))
+	})
 	router.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		// an example API handler
 		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
@@ -80,6 +100,7 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
+	log.Println("End register routes")
 
 	log.Fatal(srv.ListenAndServe())
 }
